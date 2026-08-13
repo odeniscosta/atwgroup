@@ -1,0 +1,8 @@
+import Link from "next/link";
+import { CheckCircle2, ChevronRight, PackageCheck, ShoppingBag } from "lucide-react";
+import { MarketplaceShell } from "@/components/marketplace/marketplace-shell";
+
+export default async function OrderPage({ params }: { params: Promise<{ number: string }> }) {
+  const { number } = await params;
+  return <MarketplaceShell><main className="container-shell flex min-h-[62vh] flex-col items-center justify-center py-16 text-center"><span className="flex h-24 w-24 items-center justify-center rounded-full bg-[#e5f7ee] text-[#157a54]"><CheckCircle2 size={48} /></span><p className="mt-7 text-xs font-black uppercase tracking-[0.18em] text-[#f26822]">Pedido confirmado</p><h1 className="mt-3 text-4xl font-black tracking-[-0.07em] md:text-5xl">Tudo certo 🎉</h1><p className="mt-4 max-w-md text-sm leading-6 text-[#5f5852]">Recebemos seu pedido <strong>#{number}</strong>. Esta é uma experiência demonstrativa do marketplace ATW Group.</p><div className="mt-8 grid w-full max-w-md gap-3 rounded-3xl bg-[#fff8f2] p-5 text-left"><p className="flex items-center gap-3 text-sm font-bold"><PackageCheck size={18} className="text-[#f26822]" /> Pedido registrado</p><p className="flex items-center gap-3 text-sm font-bold"><ShoppingBag size={18} className="text-[#157a54]" /> Acompanhamento disponível</p></div><div className="mt-8 flex flex-wrap justify-center gap-3"><Link href="/acompanhar-pedido" className="flex items-center gap-2 rounded-full bg-[#f26822] px-6 py-3 text-sm font-black text-white hover:bg-[#d94f0f]">Acompanhar pedido <ChevronRight size={16} /></Link><Link href="/" className="rounded-full border border-[#ded6cd] px-6 py-3 text-sm font-black hover:border-[#f26822]">Continuar comprando</Link></div></main></MarketplaceShell>;
+}

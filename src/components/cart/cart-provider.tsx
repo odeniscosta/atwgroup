@@ -13,6 +13,8 @@ type CartContextValue = {
   subtotal: number;
   addItem: (product: CatalogProduct) => void;
   removeItem: (productId: string) => void;
+  updateQuantity: (productId: string, quantity: number) => void;
+  clearCart: () => void;
 };
 
 const CartContext = createContext<CartContextValue | null>(null);
@@ -65,6 +67,13 @@ export function CartProvider({ children }: Readonly<{ children: React.ReactNode 
       removeItem: (productId) => {
         setItems((current) => current.filter((item) => item.id !== productId));
       },
+      updateQuantity: (productId, quantity) => {
+        setItems((current) => current.flatMap((item) => {
+          if (item.id !== productId) return [item];
+          return quantity > 0 ? [{ ...item, quantity }] : [];
+        }));
+      },
+      clearCart: () => setItems([]),
     }),
     [items],
   );
