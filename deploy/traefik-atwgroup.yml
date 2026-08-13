@@ -1,0 +1,20 @@
+http:
+  routers:
+    atwgroup-http:
+      rule: "Host(`atwgroup.51ttcb.easypanel.host`) && PathPrefix(`/`)"
+      entryPoints: [http]
+      middlewares: [redirect-to-https]
+      service: atwgroup
+    atwgroup-https:
+      rule: "Host(`atwgroup.51ttcb.easypanel.host`) && PathPrefix(`/`)"
+      entryPoints: [https]
+      tls:
+        certResolver: letsencrypt
+        domains:
+          - main: atwgroup.51ttcb.easypanel.host
+      service: atwgroup
+  services:
+    atwgroup:
+      loadBalancer:
+        servers:
+          - url: "http://atwgroup-app:3000"

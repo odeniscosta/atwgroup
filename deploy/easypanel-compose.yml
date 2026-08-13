@@ -1,0 +1,41 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: atwgroup-postgres
+    env_file: [.env]
+    environment:
+      POSTGRES_DB: atwgroup
+      POSTGRES_USER: atw
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in deploy/.env}
+    volumes:
+      - atwgroup-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U atw -d atwgroup"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: atwgroup-app
+    env_file: [.env]
+    environment:
+      HOSTNAME: 0.0.0.0
+      PORT: 3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - default
+      - easypanel
+    restart: unless-stopped
+
+volumes:
+  atwgroup-postgres:
+
+networks:
+  easypanel:
+    external: true
