@@ -1,0 +1,30 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: atwgroup-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: atwgroup
+      POSTGRES_USER: atw
+      POSTGRES_PASSWORD: atw_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - atwgroup-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U atw -d atwgroup"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  redis:
+    image: redis:7-alpine
+    container_name: atwgroup-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - atwgroup-redis:/data
+
+volumes:
+  atwgroup-postgres:
+  atwgroup-redis:

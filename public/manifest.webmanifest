@@ -1,0 +1,10 @@
+{
+  "name": "ATW Group",
+  "short_name": "ATW",
+  "description": "Seu shopping, onde você estiver.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fffdf9",
+  "theme_color": "#16120f",
+  "lang": "pt-BR"
+}
