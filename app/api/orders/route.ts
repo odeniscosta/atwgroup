@@ -53,7 +53,8 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ number, status: "PAYMENT_PENDING" }, { status: 201 });
-  } catch {
+  } catch (error) {
+    console.error("order creation failed", error instanceof Error ? error.message : "unknown error");
     return NextResponse.json({ error: "Revise os dados informados." }, { status: 400 });
   }
 }
