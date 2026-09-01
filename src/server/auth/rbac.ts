@@ -5,7 +5,7 @@ export const permissions: Record<Role, readonly string[]> = {
   ADMIN: ["admin:read", "admin:write", "seller:approve", "catalog:write", "orders:write"],
   MANAGER: ["admin:read", "seller:read", "catalog:write", "orders:write"],
   SUPPORT: ["orders:read", "customer:read", "review:moderate"],
-  SELLER: ["store:read", "store:write", "products:write", "orders:read", "reviews:read"],
+  SELLER: ["store:read", "store:write", "products:write", "orders:read", "orders:write", "reviews:read"],
   CUSTOMER: ["profile:write", "orders:read", "wishlist:write", "reviews:write"],
 };
 

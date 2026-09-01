@@ -13,6 +13,19 @@ http:
         domains:
           - main: atwgroup.51ttcb.easypanel.host
       service: atwgroup
+    atwgroup-custom-http:
+      rule: "Host(`atwgroup.com.br`) && PathPrefix(`/`)"
+      entryPoints: [http]
+      middlewares: [redirect-to-https]
+      service: atwgroup
+    atwgroup-custom-https:
+      rule: "Host(`atwgroup.com.br`) && PathPrefix(`/`)"
+      entryPoints: [https]
+      tls:
+        certResolver: letsencrypt
+        domains:
+          - main: atwgroup.com.br
+      service: atwgroup
   services:
     atwgroup:
       loadBalancer:
