@@ -1,5 +1,7 @@
 import { CatalogListing } from "@/components/marketplace/catalog-listing";
-import { searchProducts } from "@/modules/catalog/catalog.selectors";
+import { listCatalogProducts } from "@/modules/catalog/catalog.repository";
+
+export const dynamic = "force-dynamic";
 
 function readQuery(value: string | string[] | undefined) {
   const query = Array.isArray(value) ? value[0] : value;
@@ -8,7 +10,8 @@ function readQuery(value: string | string[] | undefined) {
 
 export default async function SearchPage({ searchParams }: { searchParams: Promise<{ q?: string | string[] }> }) {
   const query = readQuery((await searchParams).q);
-  const products = searchProducts(query);
+  const result = query ? await listCatalogProducts({ search: query, limit: 24 }) : { products: [] };
+  const products = result.products;
 
   return (
     <CatalogListing

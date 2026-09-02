@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CatalogListing } from "@/components/marketplace/catalog-listing";
-import { getProductsByStore, getStoreBySlug } from "@/modules/catalog/catalog.selectors";
+import { getStoreBySlug } from "@/modules/catalog/catalog.selectors";
+import { listCatalogProducts } from "@/modules/catalog/catalog.repository";
+
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
@@ -13,13 +16,14 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
   const { slug } = await params;
   const store = getStoreBySlug(slug);
   if (!store) notFound();
+  const result = await listCatalogProducts({ storeSlug: slug, limit: 100 });
 
   return (
     <CatalogListing
       eyebrow={`${store.city} · ${store.rating.toFixed(1)} ★`}
       title={store.name}
       description={`${store.tagline}. Explore os produtos desta loja parceira da ATW Group.`}
-      products={getProductsByStore(store.slug)}
+      products={result.products}
       emptyTitle="Esta loja ainda está organizando a vitrine"
       emptyDescription="Os produtos desta loja serão exibidos aqui assim que o catálogo for publicado."
     />
