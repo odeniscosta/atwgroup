@@ -27,6 +27,7 @@ export function routeError(error: unknown) {
       PAYMENT_NOT_CONFIGURED: 503,
       PAYMENT_DATABASE_UNAVAILABLE: 503,
       PAYMENT_SETTINGS_INVALID: 503,
+      NOTIFICATION_SETTINGS_INVALID: 503,
       DATABASE_UNAVAILABLE: 503,
       AUTH_NOT_CONFIGURED: 503,
     };
@@ -43,6 +44,7 @@ export function routeError(error: unknown) {
     if (error.message === "PAYMENT_NOT_CONFIGURED" || error.message === "PAYMENT_DATABASE_UNAVAILABLE") {
       return Response.json({ error: "Pagamento indisponível no momento." }, { status });
     }
+    if (error.message === "NOTIFICATION_SETTINGS_INVALID") return Response.json({ error: "A configuração de notificações está inválida ou incompleta." }, { status });
     if (error.message === "AUTH_NOT_CONFIGURED") return Response.json({ error: "Autenticação indisponível no momento." }, { status });
   }
   return Response.json({ error: "Não foi possível concluir a operação." }, { status: 500 });

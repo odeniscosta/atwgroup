@@ -4,6 +4,8 @@ type EvolutionConfig = {
   instance: string;
 };
 
+export type { EvolutionConfig };
+
 export function createEvolutionClient(config: EvolutionConfig) {
   return {
     async sendText(phone: string, text: string) {
@@ -19,4 +21,12 @@ export function createEvolutionClient(config: EvolutionConfig) {
       return response.json() as Promise<unknown>;
     },
   };
+}
+
+/** Cria um cliente com a configuração cifrada do painel ou, como fallback, do ambiente. */
+export async function createConfiguredEvolutionClient() {
+  const { getNotificationSettings } = await import("@/server/notifications/notification-settings");
+  const settings = await getNotificationSettings();
+  if (!settings.whatsapp.apiUrl || !settings.whatsapp.apiKey || !settings.whatsapp.instance) return null;
+  return createEvolutionClient({ url: settings.whatsapp.apiUrl, apiKey: settings.whatsapp.apiKey, instance: settings.whatsapp.instance });
 }

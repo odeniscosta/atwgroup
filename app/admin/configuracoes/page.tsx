@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { NotificationSettingsPanel } from "@/components/backoffice/notification-settings";
 import { PaymentSettingsPanel } from "@/components/backoffice/payment-settings";
 import { getUserFromToken } from "@/server/auth/auth.service";
 import { sessionCookie } from "@/server/auth/session";
@@ -20,5 +21,5 @@ export default async function AdminConfiguracoesPage() {
   }
   if (!user) redirect("/login");
   if (user.role !== "ADMIN") redirect("/admin");
-  return <PaymentSettingsPanel />;
+  return <><PaymentSettingsPanel /><NotificationSettingsPanel /></>;
 }
