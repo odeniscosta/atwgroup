@@ -7,6 +7,8 @@ O checkout cria o pedido e, em ambiente persistente, gera o PIX pelo Mercado Pag
 - `MERCADOPAGO_ACCESS_TOKEN`: token privado, somente no servidor.
 - `MERCADOPAGO_WEBHOOK_SECRET`: segredo usado para validar `x-signature`.
 
+Também é possível cadastrar as três credenciais em `/admin/configuracoes`. O Webhook Secret salvo pelo painel é usado pelo endpoint mesmo quando a variável de ambiente não existe; os segredos ficam criptografados no banco e são exibidos apenas mascarados.
+
 Configure o webhook Mercado Pago para `POST /api/payments/webhook`. A aplicação valida o manifesto oficial com `data.id`, `x-request-id` e `ts`, aplica HMAC-SHA256 em comparação de tempo constante e rejeita assinaturas ausentes, inválidas ou expiradas.
 
 Eventos são deduplicados por provedor, pagamento e tipo. O processamento consulta o pagamento no provedor e atualiza `Payment`, `PaymentTransaction`, `Order` e `OrderEvent` sem armazenar o payload completo.

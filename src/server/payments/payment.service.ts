@@ -2,7 +2,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { PaymentStatus } from "@/generated/prisma/enums";
 import { getUserFromRequest } from "@/server/auth/auth.service";
-import { createPaymentGateway } from "@/services/payments/payment-gateway";
+import { createConfiguredPaymentGateway } from "@/services/payments/payment-gateway";
 
 const cardSchema = z.object({
   token: z.string().trim().min(8).max(300),
@@ -52,7 +52,8 @@ export async function createOrderPayment(request: Request, input: PaymentInput) 
   if (!authorizedByAccount && !authorizedByGuestEmail) throw new Error("ORDER_FORBIDDEN");
   if (order.payment?.status === PaymentStatus.APPROVED) throw new Error("PAYMENT_ALREADY_APPROVED");
 
-  const result = await createPaymentGateway().createPayment({
+  const gateway = await createConfiguredPaymentGateway();
+  const result = await gateway.createPayment({
     orderId: order.number,
     amount: Number(order.total),
     payerEmail: normalizedEmail(input.payerEmail),

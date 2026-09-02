@@ -2,11 +2,17 @@ import { db } from "@/lib/db";
 import { routeError } from "@/server/http/route-error";
 import { syncPaymentByExternalId, webhookPayloadHash } from "@/server/payments/reconciliation";
 import { verifyMercadoPagoSignature } from "@/server/payments/webhook";
+import { getMercadoPagoSettings } from "@/server/payments/payment-settings";
 
 function validExternalId(value: string | null): value is string { return Boolean(value && /^[A-Za-z0-9_-]{1,120}$/.test(value)); }
 
 export async function POST(request: Request) {
-  const secret = process.env.MERCADOPAGO_WEBHOOK_SECRET;
+  let secret: string | null;
+  try {
+    secret = (await getMercadoPagoSettings()).webhookSecret;
+  } catch (error) {
+    return routeError(error);
+  }
   if (!secret) return Response.json({ error: "Webhook não configurado." }, { status: 503 });
   const rawBody = await request.text();
   if (rawBody.length > 64_000) return Response.json({ error: "Payload muito grande." }, { status: 413 });

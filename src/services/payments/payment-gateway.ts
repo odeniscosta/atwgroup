@@ -1,3 +1,5 @@
+import { getMercadoPagoSettings } from "@/server/payments/payment-settings";
+
 export type PaymentRequest = {
   orderId: string;
   amount: number;
@@ -31,6 +33,8 @@ type MercadoPagoResponse = {
   point_of_interaction?: { transaction_data?: { qr_code?: string; qr_code_base64?: string } };
 };
 
+export type PaymentGatewayOptions = { accessToken?: string; fetchImpl?: typeof fetch };
+
 const paymentEndpoint = "https://api.mercadopago.com/v1/payments";
 
 function accessToken(value?: string) {
@@ -51,7 +55,7 @@ async function parseResponse(response: Response) {
   return body;
 }
 
-export function createPaymentGateway(options: { accessToken?: string; fetchImpl?: typeof fetch } = {}): PaymentGateway {
+export function createPaymentGateway(options: PaymentGatewayOptions = {}): PaymentGateway {
   const token = accessToken(options.accessToken);
   const fetchImpl = options.fetchImpl ?? fetch;
 
@@ -88,4 +92,9 @@ export function createPaymentGateway(options: { accessToken?: string; fetchImpl?
       return { provider: "mercadopago", externalId: String(result.id), status: mapStatus(result.status), qrCode: result.point_of_interaction?.transaction_data?.qr_code, qrCodeBase64: result.point_of_interaction?.transaction_data?.qr_code_base64 };
     },
   };
+}
+
+export async function createConfiguredPaymentGateway(options: Omit<PaymentGatewayOptions, "accessToken"> = {}) {
+  const { accessToken } = await getMercadoPagoSettings();
+  return createPaymentGateway({ ...options, accessToken: accessToken ?? undefined });
 }

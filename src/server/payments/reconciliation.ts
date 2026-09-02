@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { PaymentStatus, OrderStatus } from "@/generated/prisma/enums";
-import { createPaymentGateway, type PaymentResult } from "@/services/payments/payment-gateway";
+import { createConfiguredPaymentGateway, type PaymentResult } from "@/services/payments/payment-gateway";
 
 function paymentStatus(status: PaymentResult["status"]) {
   if (status === "approved") return PaymentStatus.APPROVED;
@@ -13,7 +13,8 @@ function paymentStatus(status: PaymentResult["status"]) {
 export async function syncPaymentByExternalId(externalId: string, eventType = "payment") {
   const payment = await db.payment.findFirst({ where: { provider: "mercadopago", providerId: externalId }, select: { id: true } });
   if (!payment) return { matched: false, status: null as PaymentStatus | null };
-  const result = await createPaymentGateway().getPayment(externalId);
+  const gateway = await createConfiguredPaymentGateway();
+  const result = await gateway.getPayment(externalId);
   const status = paymentStatus(result.status);
   await db.$transaction(async (transaction) => {
     const current = await transaction.payment.findUnique({ where: { id: payment.id }, select: { id: true, orderId: true, status: true, amount: true } });
