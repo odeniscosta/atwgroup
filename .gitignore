@@ -3,6 +3,7 @@
 
 # build output
 /.next/
+/public/uploads/
 /out/
 /build/
 

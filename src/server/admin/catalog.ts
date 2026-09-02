@@ -54,7 +54,7 @@ function productDto(product: {
   price: unknown; promotionalPrice: unknown; stock: number; minimumStock: number; status: ProductStatus;
   featured: boolean; isPromotion: boolean; category: { id: string; name: string } | null;
   seller: { id: string; tradeName: string; store: { name: string } | null };
-  images: Array<{ url: string; alt: string | null }>;
+  images: Array<{ id: string; url: string; alt: string | null; position: number }>;
 }) {
   return {
     id: product.id, name: product.name, slug: product.slug, sku: product.sku,
@@ -64,6 +64,7 @@ function productDto(product: {
     featured: product.featured, isPromotion: product.isPromotion,
     category: product.category, seller: { id: product.seller.id, name: product.seller.store?.name ?? product.seller.tradeName },
     imageUrl: product.images[0]?.url ?? null,
+    images: product.images.map((image) => ({ id: image.id, url: image.url, alt: image.alt, position: image.position })),
     lowStock: product.stock <= product.minimumStock,
   };
 }
@@ -71,7 +72,7 @@ function productDto(product: {
 const productInclude = {
   category: { select: { id: true, name: true } },
   seller: { select: { id: true, tradeName: true, store: { select: { name: true } } } },
-  images: { select: { url: true, alt: true }, orderBy: { position: "asc" as const }, take: 1 },
+  images: { select: { id: true, url: true, alt: true, position: true }, orderBy: { position: "asc" as const }, take: 5 },
 } as const;
 
 export async function listManagedProducts(user: PublicUser) {

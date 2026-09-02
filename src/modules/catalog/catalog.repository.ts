@@ -6,7 +6,7 @@ import type { CatalogProduct } from "@/types/catalog";
 
 const catalogInclude = {
   category: true,
-  images: { orderBy: { position: "asc" }, take: 1 },
+  images: { orderBy: { position: "asc" }, take: 5 },
   reviews: { select: { rating: true } },
   seller: { include: { store: true } },
 } satisfies Prisma.ProductInclude;
@@ -74,6 +74,7 @@ function demoCatalogProducts(query: CatalogQuery): CatalogProduct[] {
 
 function buildWhere(query: CatalogQuery): Prisma.ProductWhereInput {
   const search = query.search?.trim();
+
   return {
     status: "ACTIVE",
     stock: { gt: 0 },
@@ -107,6 +108,7 @@ export function mapPersistedProduct(product: PersistedProduct): CatalogProduct {
   const price = promotionalPrice ?? Number(product.price);
   const ratings = product.reviews.map((review) => review.rating);
   const store = product.seller.store;
+  const images = product.images.map((image) => image.url);
 
   return {
     id: product.id,
@@ -121,7 +123,8 @@ export function mapPersistedProduct(product: PersistedProduct): CatalogProduct {
     rating: ratings.length ? Number((ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length).toFixed(1)) : Number(store?.rating ?? 0),
     reviews: ratings.length,
     sold: product.shortDescription ?? "Disponível para envio",
-    image: product.images[0]?.url ?? fallbackImage(product.slug),
+    image: images[0] ?? fallbackImage(product.slug),
+    images,
     badge: product.isPromotion ? "Oferta do dia" : undefined,
   };
 }

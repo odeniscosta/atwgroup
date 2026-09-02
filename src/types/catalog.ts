@@ -20,6 +20,7 @@ export type CatalogProduct = {
   reviews: number;
   sold: string;
   image: string;
+  images?: string[];
   badge?: string;
   pix?: string;
 };

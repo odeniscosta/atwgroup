@@ -25,6 +25,8 @@ services:
     environment:
       HOSTNAME: 0.0.0.0
       PORT: 3000
+    volumes:
+      - atwgroup-uploads:/app/public/uploads
     depends_on:
       postgres:
         condition: service_healthy
@@ -35,6 +37,7 @@ services:
 
 volumes:
   atwgroup-postgres:
+  atwgroup-uploads:
 
 networks:
   easypanel:

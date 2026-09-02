@@ -10,7 +10,9 @@ import type { CatalogProduct } from "@/types/catalog";
 
 export function ProductDetail({ product }: Readonly<{ product: CatalogProduct }>) {
   const { addItem } = useCart();
+  const images = product.images?.length ? product.images : [product.image];
   const [quantity, setQuantity] = useState(1);
+  const [selectedImage, setSelectedImage] = useState(0);
   const [added, setAdded] = useState(false);
 
   function addToCart() {
@@ -25,11 +27,14 @@ export function ProductDetail({ product }: Readonly<{ product: CatalogProduct }>
         <Link href="/" className="hover:text-[#f26822]">Início</Link> / <Link href="/categorias" className="hover:text-[#f26822]">Categorias</Link> / {product.name}
       </nav>
       <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14">
-        <div className="overflow-hidden rounded-[28px] bg-[#f7f2ec]">
+        <div>
+          <div className="overflow-hidden rounded-[28px] bg-[#f7f2ec]">
           <div className="relative aspect-square">
-            <Image src={product.image} alt={product.name} fill priority sizes="(max-width: 1024px) 100vw, 55vw" className="object-cover" />
+            <Image src={images[selectedImage] ?? product.image} alt={`${product.name} — foto ${selectedImage + 1}`} fill priority sizes="(max-width: 1024px) 100vw, 55vw" className="object-cover" />
             {product.badge && <span className="absolute left-5 top-5 rounded-full bg-[#f26822] px-3 py-1.5 text-xs font-black uppercase tracking-wide text-white">{product.badge}</span>}
           </div>
+          </div>
+          {images.length > 1 && <div className="mt-3 grid grid-cols-5 gap-2" aria-label="Fotos do produto">{images.map((image, index) => <button key={`${image}-${index}`} type="button" onClick={() => setSelectedImage(index)} aria-label={`Ver foto ${index + 1}`} aria-pressed={selectedImage === index} className={`relative aspect-square overflow-hidden rounded-xl border-2 bg-[#f7f2ec] ${selectedImage === index ? "border-[#f26822]" : "border-transparent"}`}><Image src={image} alt="" fill sizes="120px" className="object-cover" /></button>)}</div>}
         </div>
         <div className="flex flex-col">
           <p className="text-xs font-black uppercase tracking-[0.18em] text-[#f26822]">{product.category}</p>
