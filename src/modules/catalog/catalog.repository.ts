@@ -1,8 +1,8 @@
 import { Prisma } from "@/generated/prisma/client";
 import { db } from "@/lib/db";
 import { formatCurrency } from "@/lib/format";
-import { demoCategories, demoProducts } from "@/modules/catalog/catalog.data";
-import type { CatalogProduct } from "@/types/catalog";
+import { demoCategories, demoProducts, demoStores } from "@/modules/catalog/catalog.data";
+import type { CatalogProduct, CatalogStore } from "@/types/catalog";
 
 const catalogInclude = {
   category: true,
@@ -32,6 +32,10 @@ export type CatalogProductResult = {
   source: CatalogSource;
   product?: CatalogProduct;
 };
+
+function storeInitials(name: string) {
+  return name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase() || "ATW";
+}
 
 function normalize(value: string) {
   return value
@@ -127,6 +131,40 @@ export function mapPersistedProduct(product: PersistedProduct): CatalogProduct {
     images,
     badge: product.isPromotion ? "Oferta do dia" : undefined,
   };
+}
+
+export async function getCatalogStoreBySlug(slug: string): Promise<CatalogStore | undefined> {
+  const demoStore = demoStores.find((store) => store.slug === slug);
+  if (!databaseEnabled()) return demoStore;
+
+  try {
+    const store = await db.store.findUnique({
+      where: { slug },
+      select: {
+        slug: true,
+        name: true,
+        description: true,
+        city: true,
+        state: true,
+        rating: true,
+        seller: { select: { _count: { select: { products: true } } } },
+      },
+    });
+    if (!store) return demoStore;
+    return {
+      slug: store.slug,
+      name: store.name,
+      tagline: store.description ?? "Uma loja parceira da ATW Group",
+      city: [store.city, store.state].filter(Boolean).join(", ") || "Brasil",
+      rating: Number(store.rating),
+      products: store.seller._count.products,
+      initials: storeInitials(store.name),
+      tone: "#f26822",
+    };
+  } catch (error) {
+    console.error("catalog store read failed", error instanceof Error ? error.message : "unknown error");
+    return demoStore;
+  }
 }
 
 export async function listCatalogProducts(query: CatalogQuery = {}): Promise<CatalogListResult> {
