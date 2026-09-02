@@ -25,5 +25,10 @@ COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /app/tsconfig.json ./tsconfig.json
 COPY --from=builder /app/src/generated ./src/generated
 COPY --from=builder /app/src/modules ./src/modules
+RUN addgroup --system --gid 1001 nodejs \
+  && adduser --system --uid 1001 nextjs \
+  && mkdir -p /app/public/uploads \
+  && chown -R nextjs:nodejs /app
+USER nextjs
 EXPOSE 3000
 CMD ["node", "server.js"]
