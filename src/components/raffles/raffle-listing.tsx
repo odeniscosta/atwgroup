@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight, CalendarDays, Ticket, Trophy } from "lucide-react";
 import { MarketplaceShell } from "@/components/marketplace/marketplace-shell";
 import type { RafflePublic } from "@/server/raffles";
@@ -26,9 +27,9 @@ export function RaffleListing({ raffles }: Readonly<{ raffles: RafflePublic[] }>
           <section className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
             {raffles.map((raffle) => (
               <article key={raffle.id} className="overflow-hidden rounded-3xl border border-[#eee8df] bg-white shadow-[0_16px_40px_rgba(68,44,25,0.07)]">
-                <div className="flex h-36 items-center justify-between bg-[radial-gradient(circle_at_20%_20%,#ffb77f,transparent_45%),linear-gradient(135deg,#f26822,#17120f)] p-6 text-white">
-                  <Ticket size={54} strokeWidth={1.4} />
-                  <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-black">{raffle.availableCount} disponíveis</span>
+                <div className="relative flex h-36 items-center justify-between overflow-hidden bg-[radial-gradient(circle_at_20%_20%,#ffb77f,transparent_45%),linear-gradient(135deg,#f26822,#17120f)] p-6 text-white">
+                  {raffle.images[0]?.url || raffle.imageUrl ? <Image src={raffle.images[0]?.url ?? raffle.imageUrl ?? ""} alt={raffle.images[0]?.alt ?? raffle.title} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover" /> : <Ticket size={54} strokeWidth={1.4} />}
+                  <span className="relative ml-auto rounded-full bg-black/30 px-3 py-1 text-xs font-black">{raffle.availableCount} disponíveis</span>
                 </div>
                 <div className="p-6">
                   <p className="text-xs font-black uppercase tracking-[0.12em] text-[#f26822]">{raffle.soldCount} números pagos</p>

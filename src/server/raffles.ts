@@ -60,6 +60,7 @@ export type RafflePublic = {
   slug: string;
   description: string | null;
   imageUrl: string | null;
+  images: Array<{ id: string; url: string; alt: string | null; position: number }>;
   ticketPrice: number;
   totalNumbers: number;
   maxPerCustomer: number;
@@ -80,6 +81,7 @@ const raffleSelect = {
   slug: true,
   description: true,
   imageUrl: true,
+  images: { select: { id: true, url: true, alt: true, position: true }, orderBy: { position: "asc" }, take: 5 },
   ticketPrice: true,
   totalNumbers: true,
   maxPerCustomer: true,
@@ -167,6 +169,7 @@ function countsFor(raffle: { id: string; totalNumbers: number }, counts: Map<str
 
 function adminDto(raffle: {
   id: string; title: string; slug: string; description: string | null; imageUrl: string | null;
+  images: Array<{ id: string; url: string; alt: string | null; position: number }>;
   ticketPrice: unknown; totalNumbers: number; maxPerCustomer: number; drawAt: Date | null; status: RaffleStatus;
   winningNumber: number | null; category: { id: string; name: string; slug: string };
 }, counts: Map<string, TicketCounts>) {
@@ -176,6 +179,7 @@ function adminDto(raffle: {
     slug: raffle.slug,
     description: raffle.description,
     imageUrl: raffle.imageUrl,
+    images: raffle.images,
     ticketPrice: Number(raffle.ticketPrice),
     totalNumbers: raffle.totalNumbers,
     maxPerCustomer: raffle.maxPerCustomer,
@@ -345,6 +349,7 @@ export async function releaseExpiredRaffleOrders() {
 
 function publicDto(raffle: {
   id: string; title: string; slug: string; description: string | null; imageUrl: string | null;
+  images: Array<{ id: string; url: string; alt: string | null; position: number }>;
   ticketPrice: unknown; totalNumbers: number; maxPerCustomer: number; drawAt: Date | null; status: RaffleStatus; winningNumber: number | null;
 }, counts: TicketCounts, occupiedNumbers: number[]): RafflePublic {
   return {
@@ -353,6 +358,7 @@ function publicDto(raffle: {
     slug: raffle.slug,
     description: raffle.description,
     imageUrl: raffle.imageUrl,
+    images: raffle.images,
     ticketPrice: Number(raffle.ticketPrice),
     totalNumbers: raffle.totalNumbers,
     maxPerCustomer: raffle.maxPerCustomer,

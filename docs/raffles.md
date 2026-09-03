@@ -6,6 +6,7 @@ O módulo de rifas é uma vertical separada de produtos e pedidos do marketplace
 
 1. Acesse o painel administrativo e abra a aba **Rifas**.
 2. Crie a campanha como rascunho, informando preço por número, quantidade total, limite por participante e, opcionalmente, a data do sorteio.
+   - A campanha aceita até 5 imagens JPG, PNG, WebP ou AVIF, com até 5 MB por arquivo. Os arquivos ficam no volume persistente de uploads e podem ser removidos individualmente durante a edição.
 3. Altere o status para **Aberta** quando a campanha estiver pronta. O status pode ser pausado ou cancelado; campanhas sorteadas não podem ser editadas.
 4. O botão **Sortear** é exclusivo de `ADMIN`, só aparece com números pagos e escolhe um número pago usando aleatoriedade criptograficamente segura.
 5. A ação **Ver reservas** mostra os pedidos, participantes, números e situação do PIX da campanha, sem misturar esses dados com os pedidos regulares.
@@ -13,6 +14,7 @@ O módulo de rifas é uma vertical separada de produtos e pedidos do marketplace
 ## Compra e PIX
 
 - A vitrine fica em `/rifas` e cada campanha em `/rifa/{slug}`.
+- As imagens cadastradas aparecem como capa na listagem e como galeria na página pública da rifa; `imageUrl` continua disponível apenas como fallback legado.
 - O participante escolhe os números disponíveis e informa nome, e-mail e telefone.
 - Os números são reservados por 15 minutos em uma transação; números pagos ou reservados não podem ser escolhidos novamente.
 - A cobrança é criada pelo gateway Mercado Pago já existente, sempre com `method: "pix"`. Nenhum cartão é aceito neste fluxo.

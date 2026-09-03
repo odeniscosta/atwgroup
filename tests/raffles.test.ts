@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { RaffleStatus } from "../src/generated/prisma/enums";
+import { MAX_RAFFLE_IMAGES } from "../src/server/admin/raffle-images";
 import { calculateRaffleTotal, canTransitionRaffle, normalizeRaffleNumbers, raffleInputSchema } from "../src/server/raffles";
 
 test("raffle numbers are normalized, sorted and deduplicated", () => {
@@ -27,4 +28,8 @@ test("raffle input rejects an invalid customer limit and past draw date", () => 
     maxPerCustomer: 11,
     drawAt: new Date(Date.now() - 60_000).toISOString(),
   }));
+});
+
+test("raffle image gallery is limited to five files", () => {
+  assert.equal(MAX_RAFFLE_IMAGES, 5);
 });

@@ -505,10 +505,24 @@ model Raffle {
   drawnAt       DateTime?
   orders        RaffleOrder[]
   tickets       RaffleTicket[]
+  images        RaffleImage[]
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
   @@index([status, createdAt])
+}
+
+model RaffleImage {
+  id        String   @id @default(cuid())
+  raffleId  String
+  raffle    Raffle   @relation(fields: [raffleId], references: [id], onDelete: Cascade)
+  url       String
+  alt       String?
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@unique([raffleId, position])
+  @@index([raffleId, position])
 }
 
 model RaffleOrder {

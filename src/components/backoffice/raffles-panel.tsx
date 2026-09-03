@@ -1,15 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { CalendarClock, CircleAlert, Dices, Edit3, Save, Ticket, X } from "lucide-react";
 
 type Role = "ADMIN" | "MANAGER";
+type RaffleImage = { id: string; url: string; alt: string | null; position: number };
 type Raffle = {
   id: string;
   title: string;
   slug: string;
   description: string | null;
   imageUrl: string | null;
+  images: RaffleImage[];
   ticketPrice: number;
   totalNumbers: number;
   maxPerCustomer: number;
@@ -43,13 +46,15 @@ type RaffleForm = {
   totalNumbers: string;
   maxPerCustomer: string;
   drawAt: string;
+  imageFiles: File[];
+  existingImages: RaffleImage[];
 };
 
 const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const inputClass = "h-11 rounded-xl border border-[#ded6cd] bg-white px-3 text-sm font-normal text-[#302a25] outline-none focus:border-[#f26822] focus:ring-4 focus:ring-[#f26822]/10";
 
 function emptyForm(): RaffleForm {
-  return { title: "", slug: "", description: "", imageUrl: "", ticketPrice: "", totalNumbers: "100", maxPerCustomer: "10", drawAt: "" };
+  return { title: "", slug: "", description: "", imageUrl: "", ticketPrice: "", totalNumbers: "100", maxPerCustomer: "10", drawAt: "", imageFiles: [], existingImages: [] };
 }
 
 function statusLabel(value: string) {
@@ -74,6 +79,8 @@ function formFromRaffle(raffle: Raffle): RaffleForm {
     totalNumbers: String(raffle.totalNumbers),
     maxPerCustomer: String(raffle.maxPerCustomer),
     drawAt: localDateTime(raffle.drawAt),
+    imageFiles: [],
+    existingImages: raffle.images ?? [],
   };
 }
 
@@ -93,9 +100,12 @@ export function RafflesPanel({ role }: Readonly<{ role: Role }>) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [deletingImage, setDeletingImage] = useState("");
+  const [imageError, setImageError] = useState("");
 
   async function api<T>(url: string, init?: RequestInit): Promise<T> {
-    const response = await fetch(url, { ...init, headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) }, cache: "no-store" });
+    const headers = init?.body instanceof FormData ? init.headers : { "Content-Type": "application/json", ...(init?.headers ?? {}) };
+    const response = await fetch(url, { ...init, headers, cache: "no-store" });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.error ?? "Não foi possível concluir a operação.");
     return data as T;
@@ -149,9 +159,32 @@ export function RafflesPanel({ role }: Readonly<{ role: Role }>) {
   function save(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     void mutate(async () => {
-      const payload = { ...form, ticketPrice: Number(form.ticketPrice), totalNumbers: Number(form.totalNumbers), maxPerCustomer: Number(form.maxPerCustomer), imageUrl: form.imageUrl || undefined, drawAt: form.drawAt || undefined };
-      await api(form.id ? `/api/admin/raffles/${form.id}` : "/api/admin/raffles", { method: form.id ? "PATCH" : "POST", body: JSON.stringify(payload) });
+      const payload = { title: form.title, slug: form.slug, description: form.description, ticketPrice: Number(form.ticketPrice), totalNumbers: Number(form.totalNumbers), maxPerCustomer: Number(form.maxPerCustomer), imageUrl: form.imageUrl || undefined, drawAt: form.drawAt || undefined };
+      const result = await api<{ raffle: Raffle }>(form.id ? `/api/admin/raffles/${form.id}` : "/api/admin/raffles", { method: form.id ? "PATCH" : "POST", body: JSON.stringify(payload) });
+      if (form.imageFiles.length) await uploadRaffleImages(result.raffle.id, form.imageFiles);
     }, form.id ? "Rifa atualizada." : "Rifa criada como rascunho.");
+  }
+
+  async function uploadRaffleImages(raffleId: string, files: File[]) {
+    const formData = new FormData();
+    files.forEach((file) => formData.append("files", file));
+    await api(`/api/admin/raffles/${raffleId}/images`, { method: "POST", body: formData });
+  }
+
+  async function removeImage(image: RaffleImage) {
+    if (!form.id) return;
+    setDeletingImage(image.id);
+    setImageError("");
+    try {
+      const response = await fetch(`/api/admin/raffles/${form.id}/images/${image.id}`, { method: "DELETE" });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error ?? "Não foi possível remover a foto.");
+      setForm((current) => ({ ...current, existingImages: current.existingImages.filter((currentImage) => currentImage.id !== image.id) }));
+    } catch (removeError) {
+      setImageError(removeError instanceof Error ? removeError.message : "Não foi possível remover a foto.");
+    } finally {
+      setDeletingImage("");
+    }
   }
 
   function changeStatus(raffle: Raffle, status: string) {
@@ -184,7 +217,16 @@ export function RafflesPanel({ role }: Readonly<{ role: Role }>) {
           <label className="grid gap-2 text-xs font-black text-[#514840]">Quantidade de números<input required type="number" min="2" max="10000" step="1" value={form.totalNumbers} onChange={(event) => setForm({ ...form, totalNumbers: event.target.value })} className={inputClass} /></label>
           <label className="grid gap-2 text-xs font-black text-[#514840]">Limite por participante<input required type="number" min="1" step="1" value={form.maxPerCustomer} onChange={(event) => setForm({ ...form, maxPerCustomer: event.target.value })} className={inputClass} /></label>
           <label className="grid gap-2 text-xs font-black text-[#514840]">Data do sorteio<input type="datetime-local" value={form.drawAt} onChange={(event) => setForm({ ...form, drawAt: event.target.value })} className={inputClass} /></label>
-          <label className="grid gap-2 text-xs font-black text-[#514840] sm:col-span-2">Imagem HTTPS<input type="url" value={form.imageUrl} onChange={(event) => setForm({ ...form, imageUrl: event.target.value })} placeholder="https://..." className={inputClass} /></label>
+          <label className="grid gap-2 text-xs font-black text-[#514840] sm:col-span-2">Imagens da rifa (até 5)
+            <div className="rounded-2xl border border-dashed border-[#ded6cd] bg-[#fffaf6] p-3">
+              <input type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple disabled={form.existingImages.length >= 5} onChange={(event) => { const available = Math.max(0, 5 - form.existingImages.length); setForm({ ...form, imageFiles: Array.from(event.target.files ?? []).slice(0, available) }); }} className="block w-full text-xs font-normal text-[#665d55] file:mr-3 file:rounded-full file:border-0 file:bg-[#f26822] file:px-3 file:py-2 file:text-xs file:font-black file:text-white" />
+              <p className="mt-2 text-[11px] font-normal leading-4 text-[#887d73]">JPG, PNG, WebP ou AVIF · até 5 MB por foto · {form.existingImages.length + form.imageFiles.length}/5 selecionadas.</p>
+              {form.imageFiles.length > 0 && <ul className="mt-2 space-y-1 text-[11px] font-bold text-[#665d55]">{form.imageFiles.map((file) => <li key={file.name + "-" + file.lastModified}>{file.name}</li>)}</ul>}
+              {form.existingImages.length > 0 && <div className="mt-3 grid grid-cols-5 gap-2">{form.existingImages.map((image) => <div key={image.id} className="group relative aspect-square overflow-hidden rounded-lg bg-[#f7f2ec]"><Image src={image.url} alt={image.alt ?? "Foto da rifa"} fill sizes="96px" className="object-cover" /><button type="button" onClick={() => void removeImage(image)} disabled={busy || deletingImage === image.id} className="absolute inset-x-1 bottom-1 rounded-md bg-[#16120f]/85 px-1 py-1 text-[10px] font-black text-white opacity-0 transition group-hover:opacity-100 disabled:opacity-60">{deletingImage === image.id ? "..." : "Remover"}</button></div>)}</div>}
+              {imageError && <p role="alert" className="mt-2 text-[11px] font-bold text-[#a53a10]">{imageError}</p>}
+            </div>
+          </label>
+          <label className="grid gap-2 text-xs font-black text-[#514840] sm:col-span-2">Imagem HTTPS de fallback (opcional)<input type="url" value={form.imageUrl} onChange={(event) => setForm({ ...form, imageUrl: event.target.value })} placeholder="https://..." className={inputClass} /></label>
           <label className="grid gap-2 text-xs font-black text-[#514840] sm:col-span-2">Descrição<textarea value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} className={`${inputClass} h-28 py-3`} /></label>
         </div>
         <button disabled={busy} className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#f26822] text-sm font-black text-white hover:bg-[#d94f0f] disabled:opacity-50"><Save size={16} />{busy ? "Salvando..." : form.id ? "Salvar rifa" : "Criar rifa"}</button>
