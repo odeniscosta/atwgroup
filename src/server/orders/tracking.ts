@@ -54,22 +54,38 @@ export async function findTrackedOrders(input: TrackingInput): Promise<TrackingR
   }
 
   const references = normalizeTrackingReferences(input.number);
-  const orders = await db.order.findMany({
-    where: { number: { in: references } },
-    include: { events: { orderBy: { createdAt: "asc" }, select: { status: true, createdAt: true } } },
-    orderBy: { createdAt: "desc" },
-  });
   const email = normalize(input.email);
-  const authorizedOrders = orders.filter((order) => normalize(readEmail(order.shippingAddress)) === email);
-
-  return {
-    source: "database",
-    orders: authorizedOrders.map((order) => ({
+  const [orders, raffleOrders] = await Promise.all([
+    db.order.findMany({
+      where: { number: { in: references } },
+      include: { events: { orderBy: { createdAt: "asc" }, select: { status: true, createdAt: true } } },
+      orderBy: { createdAt: "desc" },
+    }),
+    db.raffleOrder.findMany({
+      where: { number: { in: references } },
+      include: { events: { orderBy: { createdAt: "asc" }, select: { status: true, createdAt: true } } },
+      orderBy: { createdAt: "desc" },
+    }),
+  ]);
+  const authorizedOrders: TrackedOrder[] = [
+    ...orders.filter((order) => normalize(readEmail(order.shippingAddress)) === email).map((order) => ({
       number: order.number,
       status: order.status,
       total: Number(order.total),
       createdAt: order.createdAt.toISOString(),
       events: order.events.map((event) => ({ status: event.status, createdAt: event.createdAt.toISOString() })),
     })),
+    ...raffleOrders.filter((order) => normalize(order.buyerEmail) === email).map((order) => ({
+      number: order.number,
+      status: order.status,
+      total: Number(order.total),
+      createdAt: order.createdAt.toISOString(),
+      events: order.events.map((event) => ({ status: event.status, createdAt: event.createdAt.toISOString() })),
+    })),
+  ].sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+
+  return {
+    source: "database",
+    orders: authorizedOrders,
   };
 }

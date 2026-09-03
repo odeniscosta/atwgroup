@@ -35,6 +35,12 @@ async function main() {
     categoryIds.set(category.name, record.id);
   }
 
+  await prisma.category.upsert({
+    where: { slug: "rifas" },
+    update: { name: "Rifas", description: "Produtos e campanhas de rifas da ATW Group." },
+    create: { name: "Rifas", slug: "rifas", description: "Produtos e campanhas de rifas da ATW Group." },
+  });
+
   for (const product of demoProducts) {
     await prisma.product.upsert({
       where: { id: product.id },

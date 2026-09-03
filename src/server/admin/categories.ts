@@ -46,6 +46,7 @@ export async function updateManagedCategory(user: PublicUser, id: string, input:
   if (data.parentId === id) throw new Error("CONFLICT");
   const before = await db.category.findUnique({ where: { id }, select: { id: true, name: true, slug: true, parentId: true } });
   if (!before) throw new Error("CATEGORY_NOT_FOUND");
+  if (before.slug === "rifas" && (data.name !== "Rifas" || data.slug !== "rifas")) throw new Error("RAFFLE_CATEGORY_PROTECTED");
   try {
     const category = await db.$transaction(async (transaction) => {
       if (data.parentId && !(await transaction.category.findUnique({ where: { id: data.parentId }, select: { id: true } }))) throw new Error("CATEGORY_NOT_FOUND");
@@ -62,8 +63,9 @@ export async function updateManagedCategory(user: PublicUser, id: string, input:
 
 export async function deleteManagedCategory(user: PublicUser, id: string) {
   assertWrite(user);
-  const category = await db.category.findUnique({ where: { id }, select: { id: true, name: true, _count: { select: { products: true, children: true } } } });
+  const category = await db.category.findUnique({ where: { id }, select: { id: true, name: true, slug: true, _count: { select: { products: true, children: true } } } });
   if (!category) throw new Error("CATEGORY_NOT_FOUND");
+  if (category.slug === "rifas") throw new Error("RAFFLE_CATEGORY_PROTECTED");
   if (category._count.products || category._count.children) throw new Error("CONFLICT");
   await db.$transaction(async (transaction) => {
     await transaction.category.delete({ where: { id } });

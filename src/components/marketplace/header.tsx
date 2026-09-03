@@ -56,7 +56,7 @@ export function MarketplaceHeader({ categories }: Readonly<{ categories: Catalog
         <div className="hidden border-t border-[#f1ece5] md:block">
           <div className="container-shell flex h-11 items-center gap-6 overflow-x-auto hide-scrollbar">
             <Link href="/categorias" className="shrink-0 text-xs font-black uppercase tracking-[0.1em] text-[#f26822]">Categorias</Link>
-            {categories.map((category) => <Link key={category.slug} href={"/categoria/" + category.slug} className="shrink-0 text-sm text-[#5f5852] hover:text-[#f26822]">{category.name}</Link>)}
+            {categories.map((category) => <Link key={category.slug} href={category.slug === "rifas" ? "/rifas" : "/categoria/" + category.slug} className="shrink-0 text-sm text-[#5f5852] hover:text-[#f26822]">{category.name}</Link>)}
             <Link href="/ofertas" className="shrink-0 text-sm font-bold text-[#f26822]">Ofertas do dia</Link>
           </div>
         </div>
@@ -67,7 +67,7 @@ export function MarketplaceHeader({ categories }: Readonly<{ categories: Catalog
             <p className="mb-4 text-xs font-black uppercase tracking-[0.18em] text-[#8a8178]">Explorar</p>
             <div className="grid gap-1">
               <Link href="/categorias" className="rounded-xl px-3 py-3 font-bold hover:bg-[#fff0e6]">Todas as categorias</Link>
-              {categories.map((category) => <Link key={category.slug} href={"/categoria/" + category.slug} className="rounded-xl px-3 py-3 text-[#5f5852] hover:bg-[#fff0e6]">{category.name}</Link>)}
+              {categories.map((category) => <Link key={category.slug} href={category.slug === "rifas" ? "/rifas" : "/categoria/" + category.slug} className="rounded-xl px-3 py-3 text-[#5f5852] hover:bg-[#fff0e6]">{category.name}</Link>)}
               <Link href="/venda-na-atw" className="mt-3 rounded-xl bg-[#16120f] px-3 py-3 font-bold text-white">Quero vender na ATW</Link>
             </div>
           </div>

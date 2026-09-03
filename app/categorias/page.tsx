@@ -22,13 +22,14 @@ export default async function CategoriesPage() {
         <section className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 md:gap-5">
           {demoCategories.map((category) => {
             const productCount = products.filter((product) => product.category === category.name).length;
+            const isRaffleCategory = category.slug === "rifas";
             return (
-              <Link key={category.slug} href={`/categoria/${category.slug}`} className="group overflow-hidden rounded-3xl border border-[#eee8df] bg-white p-5 transition hover:-translate-y-1 hover:border-[#f7c5a8] hover:shadow-[0_16px_38px_rgba(68,44,25,0.1)] md:p-6">
+              <Link key={category.slug} href={isRaffleCategory ? "/rifas" : `/categoria/${category.slug}`} className="group overflow-hidden rounded-3xl border border-[#eee8df] bg-white p-5 transition hover:-translate-y-1 hover:border-[#f7c5a8] hover:shadow-[0_16px_38px_rgba(68,44,25,0.1)] md:p-6">
                 <span className="flex h-12 w-12 items-center justify-center rounded-2xl text-2xl" style={{ backgroundColor: category.tone }}>{category.icon}</span>
                 <p className="mt-7 text-xs font-black uppercase tracking-[0.1em] text-[#9b9188]">{category.eyebrow}</p>
                 <h2 className="mt-2 text-lg font-black tracking-[-0.04em] md:text-xl">{category.name}</h2>
-                <p className="mt-2 text-xs text-[#8a8178]">{productCount} {productCount === 1 ? "produto" : "produtos"}</p>
-                <span className="mt-5 flex items-center gap-2 text-xs font-black text-[#f26822]">Ver produtos <ArrowRight size={14} className="transition group-hover:translate-x-1" /></span>
+                <p className="mt-2 text-xs text-[#8a8178]">{isRaffleCategory ? "Campanhas abertas" : `${productCount} ${productCount === 1 ? "produto" : "produtos"}`}</p>
+                <span className="mt-5 flex items-center gap-2 text-xs font-black text-[#f26822]">{isRaffleCategory ? "Ver rifas" : "Ver produtos"} <ArrowRight size={14} className="transition group-hover:translate-x-1" /></span>
               </Link>
             );
           })}

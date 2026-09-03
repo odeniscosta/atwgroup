@@ -23,6 +23,12 @@ async function main() {
     categoryIds.set(category.name, record.id);
   }
 
+  await prisma.category.upsert({
+    where: { slug: "rifas" },
+    update: { name: "Rifas", description: "Produtos e campanhas de rifas da ATW Group." },
+    create: { name: "Rifas", slug: "rifas", description: "Produtos e campanhas de rifas da ATW Group." },
+  });
+
   const stores = new Map(demoStores.map((store) => [store.slug, store]));
   for (const product of demoProducts) {
     if (!stores.has(product.storeSlug)) {

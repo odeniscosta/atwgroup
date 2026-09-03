@@ -23,6 +23,7 @@ const statusLabels: Record<string, string> = {
   DELIVERED: "Entregue",
   CANCELLED: "Cancelado",
   REFUNDED: "Reembolsado",
+  EXPIRED: "Reserva expirada",
 };
 
 function label(status: string) {

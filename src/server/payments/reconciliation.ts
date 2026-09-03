@@ -2,15 +2,18 @@ import { createHash } from "node:crypto";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { PaymentStatus, OrderStatus } from "@/generated/prisma/enums";
+import { reconcilePendingRafflePayments, syncRafflePaymentByExternalId } from "@/server/raffles";
 import { createConfiguredPaymentGateway, type PaymentResult } from "@/services/payments/payment-gateway";
 
 function paymentStatus(status: PaymentResult["status"]) {
   if (status === "approved") return PaymentStatus.APPROVED;
+  if (status === "cancelled") return PaymentStatus.CANCELLED;
+  if (status === "refunded") return PaymentStatus.REFUNDED;
   if (status === "rejected") return PaymentStatus.REJECTED;
   return PaymentStatus.PENDING;
 }
 
-export async function syncPaymentByExternalId(externalId: string, eventType = "payment") {
+async function syncRegularPaymentByExternalId(externalId: string, eventType = "payment") {
   const payment = await db.payment.findFirst({ where: { provider: "mercadopago", providerId: externalId }, select: { id: true } });
   if (!payment) return { matched: false, status: null as PaymentStatus | null };
   const gateway = await createConfiguredPaymentGateway();
@@ -31,7 +34,7 @@ export async function syncPaymentByExternalId(externalId: string, eventType = "p
         await transaction.order.update({ where: { id: order.id }, data: { status: OrderStatus.PAID } });
         await transaction.orderEvent.create({ data: { orderId: order.id, status: OrderStatus.PAID, note: "Pagamento confirmado pelo webhook do provedor" } });
       }
-    } else if (status === PaymentStatus.REJECTED) {
+    } else if (status === PaymentStatus.REJECTED || status === PaymentStatus.CANCELLED) {
       const order = await transaction.order.findUnique({ where: { id: current.orderId }, select: { id: true, status: true } });
       if (order && (order.status === OrderStatus.AWAITING_PAYMENT || order.status === OrderStatus.PAYMENT_PENDING)) {
         await transaction.order.update({ where: { id: order.id }, data: { status: OrderStatus.CANCELLED } });
@@ -44,6 +47,12 @@ export async function syncPaymentByExternalId(externalId: string, eventType = "p
   return { matched: true, status };
 }
 
+export async function syncPaymentByExternalId(externalId: string, eventType = "payment") {
+  const regularPayment = await db.payment.findFirst({ where: { provider: "mercadopago", providerId: externalId }, select: { id: true } });
+  if (regularPayment) return syncRegularPaymentByExternalId(externalId, eventType);
+  return syncRafflePaymentByExternalId(externalId, eventType);
+}
+
 export async function reconcilePendingPayments(limit: number) {
   const boundedLimit = Math.min(Math.max(Math.trunc(limit), 1), 100);
   const payments = await db.payment.findMany({ where: { provider: "mercadopago", status: PaymentStatus.PENDING, providerId: { not: null } }, select: { providerId: true }, orderBy: { updatedAt: "asc" }, take: boundedLimit });
@@ -53,7 +62,8 @@ export async function reconcilePendingPayments(limit: number) {
     const result = await syncPaymentByExternalId(payment.providerId, "manual_reconciliation");
     results.push({ externalId: payment.providerId, ...result });
   }
-  return { checked: results.length, results };
+  const raffleResult = await reconcilePendingRafflePayments(limit);
+  return { checked: results.length + raffleResult.checked, results: [...results, ...raffleResult.results] };
 }
 
 export const reconcileInputSchema = z.object({ limit: z.coerce.number().int().min(1).max(100).default(50) });

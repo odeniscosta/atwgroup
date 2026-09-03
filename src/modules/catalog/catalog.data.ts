@@ -9,6 +9,7 @@ export const demoCategories: CatalogCategory[] = [
   { slug: "acessorios", name: "Acessórios", eyebrow: "Detalhes que contam", icon: "◇", tone: "#d9e7dc" },
   { slug: "infantil", name: "Infantil", eyebrow: "Para os pequenos", icon: "✷", tone: "#f4e2a6" },
   { slug: "ferramentas", name: "Ferramentas", eyebrow: "Faça acontecer", icon: "✚", tone: "#d9d9d9" },
+  { slug: "rifas", name: "Rifas", eyebrow: "Concorra e acompanhe", icon: "◎", tone: "#f8d7a8" },
 ];
 
 const image = (id: string) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=900&q=84`;

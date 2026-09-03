@@ -17,7 +17,7 @@ export type PaymentRequest = {
 export type PaymentResult = {
   provider: string;
   externalId: string;
-  status: "pending" | "approved" | "rejected";
+  status: "pending" | "approved" | "rejected" | "cancelled" | "refunded";
   qrCode?: string;
   qrCodeBase64?: string;
 };
@@ -45,7 +45,9 @@ function accessToken(value?: string) {
 
 function mapStatus(status: string | undefined): PaymentResult["status"] {
   if (status === "approved") return "approved";
-  if (status === "rejected" || status === "cancelled" || status === "refunded") return "rejected";
+  if (status === "cancelled") return "cancelled";
+  if (status === "refunded") return "refunded";
+  if (status === "rejected") return "rejected";
   return "pending";
 }
 

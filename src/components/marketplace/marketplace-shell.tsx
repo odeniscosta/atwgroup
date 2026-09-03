@@ -18,6 +18,7 @@ export function MarketplaceShell({ children }: Readonly<{ children: React.ReactN
           </div>
           <div className="flex flex-wrap gap-x-6 gap-y-3 text-sm text-white/60">
             <Link href="/categorias" className="hover:text-white">Categorias</Link>
+            <Link href="/rifas" className="hover:text-white">Rifas</Link>
             <Link href="/ofertas" className="hover:text-white">Ofertas</Link>
             <Link href="/venda-na-atw" className="hover:text-white">Venda na ATW</Link>
             <Link href="/acompanhar-pedido" className="hover:text-white">Acompanhar pedido</Link>

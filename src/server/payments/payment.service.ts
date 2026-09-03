@@ -33,8 +33,10 @@ function shippingEmail(value: unknown) {
   return typeof email === "string" ? normalizedEmail(email) : "";
 }
 
-function providerStatus(status: "pending" | "approved" | "rejected"): PaymentStatus {
+function providerStatus(status: "pending" | "approved" | "rejected" | "cancelled" | "refunded"): PaymentStatus {
   if (status === "approved") return PaymentStatus.APPROVED;
+  if (status === "cancelled") return PaymentStatus.CANCELLED;
+  if (status === "refunded") return PaymentStatus.REFUNDED;
   if (status === "rejected") return PaymentStatus.REJECTED;
   return PaymentStatus.PENDING;
 }
